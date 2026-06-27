@@ -4,6 +4,13 @@ os.environ.setdefault("ENVIRONMENT", "testing")
 os.environ.setdefault("DEBUG", "true")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
 
+# fastapi-mail builds its ConnectionConfig at import time and validates
+# MAIL_FROM as an email address, so provide a valid placeholder for CI where
+# no .env file is present.
+os.environ["MAIL_FROM"] = "test@example.com"
+os.environ.setdefault("MAIL_USERNAME", "test")
+os.environ.setdefault("MAIL_PASSWORD", "test")
+
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
