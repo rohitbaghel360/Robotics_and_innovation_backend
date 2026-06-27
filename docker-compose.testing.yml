@@ -1,0 +1,23 @@
+# Testing / staging environment
+services:
+  api:
+    image: ${IMAGE_NAME:-ghcr.io/your-org/ri-backend}:${IMAGE_TAG:-develop}
+    ports:
+      - "8001:8000"
+    environment:
+      ENVIRONMENT: testing
+      DEBUG: "true"
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///./data/test.db}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    volumes:
+      - api_test_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  api_test_data:
