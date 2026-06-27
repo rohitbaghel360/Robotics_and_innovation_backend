@@ -48,13 +48,21 @@ jobs:
   deploy-testing:
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment:
-      name: testing
-      url: ${{ vars.TESTING_URL }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check deploy configuration
+        id: cfg
+        run: |
+          if [ -n "${{ secrets.DEPLOY_HOST }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DEPLOY_HOST secret not set — skipping deploy. Configure deploy secrets to enable it."
+          fi
+
       - name: Deploy via SSH
+        if: steps.cfg.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -73,6 +81,7 @@ jobs:
             docker compose -f docker-compose.testing.yml ps
 
       - name: Smoke test
+        if: steps.cfg.outputs.ready == 'true' && vars.TESTING_URL != ''
         run: |
           sleep 5
           curl -fsS "${{ vars.TESTING_URL }}/api/v1/health" | grep -q healthy
