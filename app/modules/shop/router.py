@@ -1,5 +1,5 @@
 import math
-from typing import List, Literal, Optional
+from typing import Literal
 
 import razorpay
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -12,14 +12,6 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, get_current_user_optional
 from app.core.deps import get_current_user_id
 from app.modules.auth.models import generate_id
-from app.modules.shop.orders import (
-    ORDER_STATUS_LABELS,
-    confirm_paid_order,
-    create_pending_order,
-    get_user_order,
-    get_user_order_by_number,
-    list_user_orders,
-)
 from app.modules.shop.cart import (
     calculate_cart_total_paise,
     clear_cart,
@@ -31,6 +23,14 @@ from app.modules.shop.cart import (
     upsert_cart_item,
 )
 from app.modules.shop.models import Address, Order, Product, ProductLike, ProductReview, SavedItem
+from app.modules.shop.orders import (
+    ORDER_STATUS_LABELS,
+    confirm_paid_order,
+    create_pending_order,
+    get_user_order,
+    get_user_order_by_number,
+    list_user_orders,
+)
 
 router = APIRouter(tags=["Shop Core"])
 
@@ -39,24 +39,24 @@ class ProductResponse(BaseModel):
     id: str
     title: str
     slug: str
-    img_url: Optional[str] = None
-    img: Optional[str] = None
-    description: Optional[str]
+    img_url: str | None = None
+    img: str | None = None
+    description: str | None
     price: float
-    compare_at_price: Optional[float]
+    compare_at_price: float | None
     stock_quantity: int
     in_stock: bool
     category: str
     brand: str
-    tag: Optional[str] = None
-    tagtype: Optional[str] = None
+    tag: str | None = None
+    tagtype: str | None = None
     average_rating: float
     review_count: int
 
 
 class ReviewCreate(BaseModel):
     rating: int = Field(..., ge=1, le=5, description="Rating scale must fall between 1 and 5")
-    comment: Optional[str] = None
+    comment: str | None = None
 
 
 class ReviewResponse(BaseModel):
@@ -64,7 +64,7 @@ class ReviewResponse(BaseModel):
     product_id: str
     user_id: str
     rating: int
-    comment: Optional[str] = None
+    comment: str | None = None
     created_at: str
 
 
@@ -75,11 +75,11 @@ class WishlistItemResponse(BaseModel):
 
 
 class WishlistResponse(BaseModel):
-    items: List[WishlistItemResponse]
+    items: list[WishlistItemResponse]
 
 
 class StorefrontResponse(BaseModel):
-    items: List[ProductResponse]
+    items: list[ProductResponse]
     page: int
     limit: int
     total: int
@@ -93,11 +93,11 @@ class CategoriesResponse(BaseModel):
     categories: list[list[str | int]]
 
 class BrandsResponse(BaseModel):
-    brands: List[str]
+    brands: list[str]
 
 
 class TagTypesResponse(BaseModel):
-    tagtypes: List[str]
+    tagtypes: list[str]
 
 
 class CartUpdateRequest(BaseModel):
@@ -125,17 +125,17 @@ class CartItemResponse(BaseModel):
     quantity: int
     title: str
     price: float
-    img_url: Optional[str] = None
+    img_url: str | None = None
     stock_quantity: int
     in_stock: bool
 
 
 class AddressBase(BaseModel):
-    label: Optional[str] = Field(None, max_length=50)
+    label: str | None = Field(None, max_length=50)
     full_name: str = Field(min_length=1, max_length=255)
     phone: str = Field(min_length=10, max_length=20)
     address_line1: str = Field(min_length=1, max_length=255)
-    address_line2: Optional[str] = Field(None, max_length=255)
+    address_line2: str | None = Field(None, max_length=255)
     city: str = Field(min_length=1, max_length=100)
     state: str = Field(min_length=1, max_length=100)
     pincode: str = Field(min_length=6, max_length=10)
@@ -147,15 +147,15 @@ class AddressCreate(AddressBase):
 
 
 class AddressUpdate(BaseModel):
-    label: Optional[str] = Field(None, max_length=50)
-    full_name: Optional[str] = Field(None, min_length=1, max_length=255)
-    phone: Optional[str] = Field(None, min_length=10, max_length=20)
-    address_line1: Optional[str] = Field(None, min_length=1, max_length=255)
-    address_line2: Optional[str] = Field(None, max_length=255)
-    city: Optional[str] = Field(None, min_length=1, max_length=100)
-    state: Optional[str] = Field(None, min_length=1, max_length=100)
-    pincode: Optional[str] = Field(None, min_length=6, max_length=10)
-    is_default: Optional[bool] = None
+    label: str | None = Field(None, max_length=50)
+    full_name: str | None = Field(None, min_length=1, max_length=255)
+    phone: str | None = Field(None, min_length=10, max_length=20)
+    address_line1: str | None = Field(None, min_length=1, max_length=255)
+    address_line2: str | None = Field(None, max_length=255)
+    city: str | None = Field(None, min_length=1, max_length=100)
+    state: str | None = Field(None, min_length=1, max_length=100)
+    pincode: str | None = Field(None, min_length=6, max_length=10)
+    is_default: bool | None = None
 
 
 class AddressResponse(AddressBase):
@@ -180,13 +180,13 @@ class OrderItemResponse(BaseModel):
     quantity: int
     unit_price: float
     line_total: float
-    img_url: Optional[str] = None
+    img_url: str | None = None
 
 
 class OrderTimelineEventResponse(BaseModel):
     status: str
     status_label: str
-    message: Optional[str] = None
+    message: str | None = None
     created_at: str
 
 
@@ -194,7 +194,7 @@ class DeliveryAddressResponse(BaseModel):
     full_name: str
     phone: str
     address_line1: str
-    address_line2: Optional[str] = None
+    address_line2: str | None = None
     city: str
     state: str
     pincode: str
@@ -212,17 +212,17 @@ class OrderSummaryResponse(BaseModel):
 
 
 class OrderDetailResponse(OrderSummaryResponse):
-    razorpay_order_id: Optional[str] = None
-    razorpay_payment_id: Optional[str] = None
-    tracking_number: Optional[str] = None
-    carrier: Optional[str] = None
+    razorpay_order_id: str | None = None
+    razorpay_payment_id: str | None = None
+    tracking_number: str | None = None
+    carrier: str | None = None
     delivery_address: DeliveryAddressResponse
-    items: List[OrderItemResponse]
-    timeline: List[OrderTimelineEventResponse]
+    items: list[OrderItemResponse]
+    timeline: list[OrderTimelineEventResponse]
 
 
 class OrderListResponse(BaseModel):
-    items: List[OrderSummaryResponse]
+    items: list[OrderSummaryResponse]
     page: int
     limit: int
     total: int
@@ -274,13 +274,13 @@ def _product_to_dict(p: Product) -> dict:
 def _apply_product_filters(
     stmt,
     *,
-    categories: Optional[List[str]] = None,
-    brands: Optional[List[str]] = None,
-    tagtypes: Optional[List[str]] = None,
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
+    categories: list[str] | None = None,
+    brands: list[str] | None = None,
+    tagtypes: list[str] | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
 ):
-    stmt = stmt.where(Product.is_active == True)
+    stmt = stmt.where(Product.is_active.is_(True))
     if categories:
         stmt = stmt.where(Product.category.in_(categories))
     if brands:
@@ -296,11 +296,11 @@ def _apply_product_filters(
 
 def _build_applied_filters(
     *,
-    categories: Optional[List[str]],
-    brands: Optional[List[str]],
-    tagtypes: Optional[List[str]],
-    min_price: Optional[float],
-    max_price: Optional[float],
+    categories: list[str] | None,
+    brands: list[str] | None,
+    tagtypes: list[str] | None,
+    min_price: float | None,
+    max_price: float | None,
     sort_by: str,
 ) -> dict:
     return {
@@ -332,7 +332,7 @@ async def list_shop_categories(db: AsyncSession = Depends(get_db)):
     """Returns storefront sidebar categories grouped by tagtype with counts."""
     stmt = (
         select(Product.category, func.count(Product.id))
-        .where(Product.is_active == True, Product.category.isnot(None))
+        .where(Product.is_active.is_(True), Product.category.isnot(None))
         .group_by(Product.category)
         .order_by(func.count(Product.id).desc())
     )
@@ -346,7 +346,7 @@ async def list_shop_brands(db: AsyncSession = Depends(get_db)):
     """Returns distinct product brands for storefront filters."""
     stmt = (
         select(Product.brand)
-        .where(Product.is_active == True)
+        .where(Product.is_active.is_(True))
         .distinct()
         .order_by(Product.brand.asc())
     )
@@ -360,7 +360,7 @@ async def list_tagtypes(db: AsyncSession = Depends(get_db)):
     """Returns all distinct tagtype values from active products."""
     stmt = (
         select(Product.tagtype)
-        .where(Product.is_active == True, Product.tagtype.isnot(None))
+        .where(Product.is_active.is_(True), Product.tagtype.isnot(None))
         .distinct()
         .order_by(Product.tagtype.asc())
     )
@@ -371,14 +371,14 @@ async def list_tagtypes(db: AsyncSession = Depends(get_db)):
 
 @router.get("/storefront", response_model=StorefrontResponse)
 async def get_storefront(
-    min_price: Optional[float] = Query(None, ge=0),
-    max_price: Optional[float] = Query(None, ge=0),
+    min_price: float | None = Query(None, ge=0),
+    max_price: float | None = Query(None, ge=0),
     sort_by: SortBy = Query("popular"),
     page: int = Query(1, ge=1),
     limit: int = Query(12, ge=1, le=100),
-    category: Optional[List[str]] = Query(None, description="Repeat for multi-select, e.g. ?category=A&category=B"),
-    brand: Optional[List[str]] = Query(None, description="Repeat for multi-select, e.g. ?brand=Generic&brand=Other"),
-    tagtype: Optional[List[str]] = Query(None, description="Repeat for multi-select, e.g. ?tagtype=new&tagtype=discount"),
+    category: list[str] | None = Query(None, description="Repeat for multi-select, e.g. ?category=A&category=B"),
+    brand: list[str] | None = Query(None, description="Repeat for multi-select, e.g. ?brand=Generic&brand=Other"),
+    tagtype: list[str] | None = Query(None, description="Repeat for multi-select, e.g. ?tagtype=new&tagtype=discount"),
     db: AsyncSession = Depends(get_db),
 ):
     """Paginated storefront catalog with multi-select filters and sorting."""
@@ -430,13 +430,13 @@ async def get_storefront(
     )
 
 
-@router.get("/products", response_model=List[ProductResponse])
+@router.get("/products", response_model=list[ProductResponse])
 async def list_store_catalog(
-    category: Optional[List[str]] = Query(None),
-    brand: Optional[List[str]] = Query(None),
-    tagtype: Optional[List[str]] = Query(None),
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
+    category: list[str] | None = Query(None),
+    brand: list[str] | None = Query(None),
+    tagtype: list[str] | None = Query(None),
+    min_price: float | None = None,
+    max_price: float | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """Fetches store products using performance-optimized dynamic filtering queries."""
@@ -456,8 +456,8 @@ async def list_store_catalog(
     return [_product_to_dict(p) for p in products]
 
 
-@router.get("/products/{product_id}/reviews", response_model=List[ReviewResponse])
-@router.get("/products/{product_id}/review", response_model=List[ReviewResponse])
+@router.get("/products/{product_id}/reviews", response_model=list[ReviewResponse])
+@router.get("/products/{product_id}/review", response_model=list[ReviewResponse])
 async def list_product_reviews(
     product_id: str,
     db: AsyncSession = Depends(get_db),
@@ -591,7 +591,7 @@ async def get_wishlist(
     stmt = (
         select(Product, SavedItem)
         .join(SavedItem, SavedItem.product_id == Product.id)
-        .where(SavedItem.user_id == user_id, Product.is_active == True)
+        .where(SavedItem.user_id == user_id, Product.is_active.is_(True))
         .order_by(SavedItem.created_at.desc())
     )
     rows = (await db.execute(stmt)).all()
@@ -610,7 +610,7 @@ async def get_wishlist(
 
 
 async def _clear_default_addresses(db: AsyncSession, user_id: str) -> None:
-    stmt = select(Address).where(Address.user_id == user_id, Address.is_default == True)
+    stmt = select(Address).where(Address.user_id == user_id, Address.is_default.is_(True))
     for address in (await db.execute(stmt)).scalars().all():
         address.is_default = False
 
@@ -688,7 +688,7 @@ def _order_detail(order: Order) -> OrderDetailResponse:
     )
 
 
-@router.get("/addresses", response_model=List[AddressResponse])
+@router.get("/addresses", response_model=list[AddressResponse])
 async def list_addresses(
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user),
@@ -797,7 +797,7 @@ async def delete_address(
 async def list_orders(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
-    status: Optional[OrderStatus] = Query(None),
+    status: OrderStatus | None = Query(None),
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
@@ -862,7 +862,7 @@ async def update_cart_item(
     return {"message": "Cart updated.", "session_id": session_id, "user_id": user_id}
 
 
-@router.get("/cart", response_model=List[CartItemResponse])
+@router.get("/cart", response_model=list[CartItemResponse])
 async def get_cart(
     db: AsyncSession = Depends(get_db),
     session_id: str = Depends(require_session_id),

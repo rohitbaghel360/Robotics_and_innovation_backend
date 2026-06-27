@@ -2,9 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from jose import JWTError, jwt
-
 import bcrypt
+from jose import JWTError, jwt
 
 from app.config import settings
 

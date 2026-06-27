@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import (
+    TIMESTAMP,
     Boolean,
     Column,
     Enum,
@@ -8,7 +9,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    TIMESTAMP,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship

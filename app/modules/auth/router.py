@@ -1,14 +1,18 @@
 import urllib.parse
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
-from datetime import datetime, timedelta
 
 from app.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user_id
+from app.core.email import generate_numeric_otp, send_otp_email
+from app.core.security import create_access_token, get_password_hash, verify_password
+from app.modules.auth.models import LocalCredential, User, UserOtp, generate_id
 from app.modules.auth.schemas import (
     GoogleProfileInspectResponse,
     RegisterInitResponse,
@@ -17,10 +21,6 @@ from app.modules.auth.schemas import (
     VerifyRegisterOtp,
 )
 from app.modules.auth.service import AuthService
-from fastapi.responses import RedirectResponse
-from app.core.security import get_password_hash, verify_password, create_access_token
-from app.core.email import send_otp_email, generate_numeric_otp
-from app.modules.auth.models import LocalCredential, User, generate_id, UserOtp
 
 router = APIRouter(tags=["Authentication"])
 

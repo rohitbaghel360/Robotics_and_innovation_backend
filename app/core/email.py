@@ -1,6 +1,8 @@
 import random
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import EmailStr
+
 from app.config import settings
 
 conf = ConnectionConfig(

@@ -46,7 +46,7 @@ async def fetch_cart_with_products(
     stmt = (
         select(CartItem, Product)
         .join(Product, CartItem.product_id == Product.id)
-        .where(cart_items_filter(session_id, user_id), Product.is_active == True)
+        .where(cart_items_filter(session_id, user_id), Product.is_active.is_(True))
     )
     result = await db.execute(stmt)
     return list(result.all())
@@ -118,7 +118,7 @@ async def upsert_cart_item(
     quantity: int,
 ) -> None:
     product = (
-        await db.execute(select(Product).where(Product.id == product_id, Product.is_active == True))
+        await db.execute(select(Product).where(Product.id == product_id, Product.is_active.is_(True)))
     ).scalar_one_or_none()
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")

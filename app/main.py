@@ -8,6 +8,7 @@ from app.api.v1.router import api_v1_router
 from app.config import settings
 from app.db import close_db, create_tables, init_db
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.settings = settings

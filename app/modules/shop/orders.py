@@ -9,7 +9,6 @@ from sqlalchemy.orm import selectinload
 from app.modules.auth.models import generate_id
 from app.modules.shop.models import Address, Order, OrderItem, OrderStatusEvent, Product
 
-
 ORDER_STATUS_LABELS = {
     "pending_payment": "Awaiting payment",
     "confirmed": "Order confirmed",

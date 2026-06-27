@@ -1,5 +1,6 @@
 from sqlalchemy import (
     DECIMAL,
+    TIMESTAMP,
     Boolean,
     Column,
     ForeignKey,
@@ -7,7 +8,6 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    TIMESTAMP,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
