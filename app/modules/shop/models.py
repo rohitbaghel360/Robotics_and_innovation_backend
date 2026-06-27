@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from app.db.base import DB_SCHEMA, Base
 from app.modules.auth.models import generate_id
 
 
@@ -23,7 +23,7 @@ class Product(Base):
         Index("idx_products_category", "category"),
         Index("idx_products_brand", "brand"),
         Index("idx_products_price", "price"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
@@ -51,12 +51,12 @@ class ProductReview(Base):
     __tablename__ = "product_reviews"
     __table_args__ = (
         UniqueConstraint("user_id", "product_id", name="unique_user_product_review"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
-    product_id = Column(String(25), ForeignKey("ri_web_auth.products.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.products.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     rating = Column(Integer, nullable=False)
     comment = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -66,19 +66,19 @@ class ProductReview(Base):
 
 class ProductLike(Base):
     __tablename__ = "product_likes"
-    __table_args__ = ({"schema": "ri_web_auth"},)
+    __table_args__ = ({"schema": DB_SCHEMA},)
 
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), primary_key=True)
-    product_id = Column(String(25), ForeignKey("ri_web_auth.products.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), primary_key=True)
+    product_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.products.id", ondelete="CASCADE"), primary_key=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
 
 class SavedItem(Base):
     __tablename__ = "saved_items"
-    __table_args__ = ({"schema": "ri_web_auth"},)
+    __table_args__ = ({"schema": DB_SCHEMA},)
 
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), primary_key=True)
-    product_id = Column(String(25), ForeignKey("ri_web_auth.products.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), primary_key=True)
+    product_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.products.id", ondelete="CASCADE"), primary_key=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
 
@@ -86,11 +86,11 @@ class Address(Base):
     __tablename__ = "addresses"
     __table_args__ = (
         Index("idx_addresses_user", "user_id"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     label = Column(String(50), nullable=True)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=False)
@@ -110,13 +110,13 @@ class CartItem(Base):
     __tablename__ = "cart_items"
     __table_args__ = (
         UniqueConstraint("session_id", "product_id", name="unique_session_product"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
     session_id = Column(String(50), nullable=False, index=True)
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), nullable=True, index=True)
-    product_id = Column(String(25), ForeignKey("ri_web_auth.products.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), nullable=True, index=True)
+    product_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.products.id", ondelete="CASCADE"), nullable=False)
     quantity = Column(Integer, default=1, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -129,12 +129,12 @@ class Order(Base):
         UniqueConstraint("razorpay_order_id", name="uq_orders_razorpay_order_id"),
         Index("idx_orders_user", "user_id"),
         Index("idx_orders_status", "status"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), nullable=False)
-    address_id = Column(String(25), ForeignKey("ri_web_auth.addresses.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    address_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.addresses.id", ondelete="SET NULL"), nullable=True)
     order_number = Column(String(32), nullable=False)
     status = Column(String(32), default="pending_payment", nullable=False)
     amount_paise = Column(Integer, nullable=False)
@@ -166,12 +166,12 @@ class OrderItem(Base):
     __tablename__ = "order_items"
     __table_args__ = (
         Index("idx_order_items_order", "order_id"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
-    order_id = Column(String(25), ForeignKey("ri_web_auth.orders.id", ondelete="CASCADE"), nullable=False)
-    product_id = Column(String(25), ForeignKey("ri_web_auth.products.id", ondelete="RESTRICT"), nullable=False)
+    order_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.orders.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.products.id", ondelete="RESTRICT"), nullable=False)
     title = Column(String(255), nullable=False)
     img = Column(String(512), nullable=True)
     unit_price = Column(DECIMAL(10, 2), nullable=False)
@@ -186,11 +186,11 @@ class OrderStatusEvent(Base):
     __tablename__ = "order_status_events"
     __table_args__ = (
         Index("idx_order_status_events_order", "order_id"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
-    order_id = Column(String(25), ForeignKey("ri_web_auth.orders.id", ondelete="CASCADE"), nullable=False)
+    order_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.orders.id", ondelete="CASCADE"), nullable=False)
     status = Column(String(32), nullable=False)
     message = Column(String(255), nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)

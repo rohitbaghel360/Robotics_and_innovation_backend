@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from app.db.base import DB_SCHEMA, Base
 
 
 def generate_id(length: int = 16) -> str:
@@ -26,7 +26,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         Index("idx_users_email", "email"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(25), primary_key=True, default=lambda: generate_id(16))
@@ -43,11 +43,11 @@ class LinkedAccount(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "provider", name="unique_user_provider"),
         Index("idx_provider_user", "provider", "provider_user_id", unique=True),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(String(16), primary_key=True, default=lambda: generate_id(16))
-    user_id = Column(String(16), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String(16), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     provider = Column(String(50), nullable=False)
     provider_user_id = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -58,10 +58,10 @@ class LocalCredential(Base):
     __tablename__ = "local_credentials"
     __table_args__ = (
         UniqueConstraint("user_id", name="unique_user_id"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
-    user_id = Column(String(25), ForeignKey("ri_web_auth.users.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(String(25), ForeignKey(f"{DB_SCHEMA}.users.id", ondelete="CASCADE"), primary_key=True)
     password_hash = Column(String(255), nullable=False)
     password_version = Column(Integer, default=1, nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -71,7 +71,7 @@ class UserOtp(Base):
     __tablename__ = "user_otps"
     __table_args__ = (
         Index("idx_otp_lookup", "email", "otp_code", "purpose"),
-        {"schema": "ri_web_auth"},
+        {"schema": DB_SCHEMA},
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
